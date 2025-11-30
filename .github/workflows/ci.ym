@@ -32,8 +32,8 @@ jobs:
 
       # 3. Запускаем Docker Compose.
       # Поднимаем db и собираем образ для тестов.
-      - name: Start services
-        run: docker-compose up -d --build db backend
+      - name: Start services and Build Tests Image
+        run: docker-compose up -d --build db backend tests
 
       # 4. Запуск тестов в контейнере и ожидание завершения.
       - name: Run Tests
