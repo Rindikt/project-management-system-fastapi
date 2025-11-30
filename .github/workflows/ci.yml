@@ -17,6 +17,15 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Install Docker Compose
+        uses: docker/setup-qemu-action@v3
+
+      - name: Install Docker Compose v2
+        run: sudo apt-get update && sudo apt-get install -y docker-compose-plugin
+
       # 1. Создаем .env-db для сервиса 'db'
       - name: Create DB .env file
         run: |
