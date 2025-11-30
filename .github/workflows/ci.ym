@@ -1,0 +1,43 @@
+# .github/workflows/ci.yml
+
+name: Continuous Integration (CI)
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 1. Создаем .env-db для сервиса 'db'
+      - name: Create DB .env file
+        run: |
+          echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> .env-db
+          echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env-db
+          echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" >> .env-db
+
+      # 2. Создаем .env для сервисов 'backend' и 'tests'
+      - name: Create Backend .env file
+        run: |
+          echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> .env
+          # ВАЖНО: Используем 'db' как хост для контейнеров Docker!
+          echo "DATABASE_URL=postgresql+asyncpg://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@db:5432/${{ secrets.POSTGRES_DB }}" >> .env
+
+      # 3. Запускаем Docker Compose.
+      # Поднимаем db и собираем образ для тестов.
+      - name: Start services
+        run: docker-compose up -d --build db backend
+
+      # 4. Запуск тестов в контейнере и ожидание завершения.
+      - name: Run Tests
+        # Используем docker-compose run для выполнения тестов.
+        # Флаг --rm удалит контейнер после завершения.
+        # Эта команда будет ждать, пока тесты завершатся и вернет код выхода.
+        run: docker-compose run --rm tests

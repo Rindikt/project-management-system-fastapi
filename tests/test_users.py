@@ -1,31 +1,26 @@
 import pytest
 from http import HTTPStatus
+from pytest_lazyfixture import lazy_fixture
 
 from app.auth import verify_password
 
 AUTH_CASES = [
-    ('auth_header_member', 200),
-    ('auth_header_owner', 200),
-    ('auth_header_admin', 200),
-    (None, 401),
+    (lazy_fixture('auth_header_member'), HTTPStatus.OK, 'member@test.com'),
+    (lazy_fixture('auth_header_owner'), HTTPStatus.OK, 'owner@test.com'),
+    (lazy_fixture('auth_header_admin'), HTTPStatus.OK, 'admin@test.com'),
+    (None, 401, None),
 ]
-@pytest.mark.parametrize('auth_fixture_name, expected_status', AUTH_CASES)
-def test_get_my_profile_access(test_client, request, auth_fixture_name, expected_status):
-    if auth_fixture_name:
-        headers = request.getfixturevalue(auth_fixture_name)
-    else:
-        headers = None
+@pytest.mark.parametrize('headers, expected_status, expected_email',
+    AUTH_CASES)
+def test_get_my_profile_access(test_client, headers, expected_status, expected_email):
+    resource = test_client.get('/users/me', headers=headers)
 
-    resource = test_client.get('/users/my', headers=headers)
     assert resource.status_code == expected_status
-    if expected_status == 200:
+
+    if expected_status == HTTPStatus.OK:
         data = resource.json()
-        if auth_fixture_name == 'auth_header_member':
-            assert data['email'] == 'member@test.com'
-        elif auth_fixture_name == 'auth_header_owner':
-            assert data['email'] == 'owner@test.com'
-        elif auth_fixture_name == 'auth_header_admin':
-            assert data['email'] == 'admin@test.com'
+
+        assert data['email'] == expected_email
 
 
 def test_register_user_success(test_client):

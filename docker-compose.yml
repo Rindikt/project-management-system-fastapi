@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  # 1. СЕРВИС БАЗЫ ДАННЫХ (db)
+  db:
+    image: postgres:14-alpine
+    container_name: postgres_db
+    restart: always
+    env_file:
+      - .env-db
+    environment:
+      # Параметры POSTGRES_USER и т.д. берутся из .env
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    ports:
+      - "5432:5432"
+
+  # 2. СЕРВИС БЭКЕНДА (backend)
+  backend:
+    build: .
+    container_name: fast_api_backend
+    restart: always
+    env_file:
+      - .env # Загружает все переменные (SECRET_KEY, DATABASE_URL и т.д.)
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    volumes:
+      - .:/app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  # 3. СЕРВИС ФРОНТЕНДА (frontend)
+  frontend:
+    image: python:3.11-slim
+    container_name: simple_frontend
+    restart: always
+    volumes:
+      - .:/app
+    working_dir: /app/frontend
+    ports:
+      - "80:80"
+    command: python -m http.server 80
+  # 4. СЕРВИС ТЕСТИРОВАНИЯ (tests)
+  tests:
+    build: . # Использует тот же Dockerfile, что и бэкенд
+    container_name: pytest_runner
+    env_file:
+      - .env # Загружаем те же переменные (DATABASE_URL, SECRET_KEY)
+    depends_on:
+      - db # Тесты должны запускаться только после готовности БД
+    volumes:
+      - .:/app
+    # Переопределяем команду, чтобы она не запускала uvicorn,
+    # а просто ждала внешнюю команду (через docker exec)
+    command: pytest tests/
+
+# ТОМЫ (Volumes): Для постоянного хранения данных
+volumes:
+  postgres_data:
