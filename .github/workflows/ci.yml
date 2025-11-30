@@ -77,3 +77,27 @@ jobs:
           tags: ${{ secrets.DOCKER_USERNAME }}/project-frontend:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  simulate_deploy:
+    needs: build_push
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Show Deployment Readiness (Simulated)
+        run: |
+          echo "================================================================"
+          echo "SUCCESS: CD Pipeline is fully prepared for remote deployment."
+          echo "================================================================"
+          echo "The following commands would be executed via SSH on the Production Server:"
+          
+          # 1. Выполнить вход в Docker Hub (чтобы сервер мог скачать ваши образы)
+          echo 'echo "${{ secrets.DOCKER_PASSWORD }}" | docker login --username ${{ secrets.DOCKER_USERNAME }} --password-stdin'
+          
+          # 2. Скачать новые образы из Docker Hub
+          echo 'docker compose pull backend frontend'
+          
+          # 3. Запустить их, принудительно пересоздав контейнеры
+          echo 'docker compose up -d --force-recreate backend frontend'
+          
+          echo "----------------------------------------------------------------"
+          echo "This Job simulates the final deployment stage for portfolio demonstration."
