@@ -1,5 +1,3 @@
-# .github/workflows/ci.yml
-
 name: Continuous Integration (CI)
 
 on:
@@ -7,7 +5,7 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
-  workflow_dispatch:
+  workflow_dispatch: # Позволяет запустить Workflow вручную с вкладки Actions
 
 jobs:
   test:
@@ -16,15 +14,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Install Docker Compose
-        uses: docker/setup-qemu-action@v3
-
-      - name: Install Docker Compose v2
-        run: sudo apt-get update && sudo apt-get install -y docker-compose-plugin
 
       # 1. Создаем .env-db для сервиса 'db'
       - name: Create DB .env file
@@ -41,13 +30,12 @@ jobs:
           echo "DATABASE_URL=postgresql+asyncpg://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@db:5432/${{ secrets.POSTGRES_DB }}" >> .env
 
       # 3. Запускаем Docker Compose.
-      # Поднимаем db и собираем образ для тестов.
-      - name: Start services and Build Tests Image
-        run: docker-compose up -d --build db backend tests
+      # Поднимаем db и собираем образы для всех сервисов.
+      - name: Start services and Build Images
+        # ✅ ИСПРАВЛЕНИЕ: Используем 'docker compose' вместо 'docker-compose'
+        run: docker compose up -d --build db backend tests
 
       # 4. Запуск тестов в контейнере и ожидание завершения.
       - name: Run Tests
-        # Используем docker-compose run для выполнения тестов.
-        # Флаг --rm удалит контейнер после завершения.
-        # Эта команда будет ждать, пока тесты завершатся и вернет код выхода.
-        run: docker-compose run --rm tests
+        # ✅ ИСПРАВЛЕНИЕ: Используем 'docker compose' вместо 'docker-compose'
+        run: docker compose run --rm tests
