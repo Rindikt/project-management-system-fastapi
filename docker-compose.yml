@@ -1,63 +1,64 @@
 version: '3.8'
 
 services:
-  # 1. СЕРВИС БАЗЫ ДАННЫХ (db)
+
+  # 1. БАЗА ДАННЫХ (PostgreSQL)
   db:
-    image: postgres:14-alpine
+    image: postgres:16-alpine
     container_name: postgres_db
-    restart: always
     env_file:
-      - .env-db
-    environment:
-      # Параметры POSTGRES_USER и т.д. берутся из .env
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      - .env-db # Используем отдельный файл для секретов БД
+    ports:
+      - "5432:5432" # Проброс порта для локального доступа
     volumes:
       - postgres_data:/var/lib/postgresql/data/
-    ports:
-      - "5432:5432"
+    healthcheck: # Проверка готовности БД
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
-  # 2. СЕРВИС БЭКЕНДА (backend)
+  # 2. БЭКЕНД (FastAPI)
   backend:
-    build: .
-    container_name: fast_api_backend
-    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile # Использует Dockerfile в корне
+    container_name: fastapi_backend
+    depends_on:
+      db:
+        condition: service_healthy # Ждет готовности БД
     env_file:
-      - .env # Загружает все переменные (SECRET_KEY, DATABASE_URL и т.д.)
+      - .env # Использует .env для DATABASE_URL и SECRET_KEY
     ports:
       - "8000:8000"
-    depends_on:
-      - db
     volumes:
-      - .:/app
+      - .:/app # Монтирование для горячей перезагрузки (локально)
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
-  # 3. СЕРВИС ФРОНТЕНДА (frontend)
+  # 3. ФРОНТЕНД (Статический HTML/JS)
   frontend:
-    image: python:3.11-slim
-    container_name: simple_frontend
-    restart: always
-    volumes:
-      - .:/app
-    working_dir: /app/frontend
+    build:
+      context: ./frontend # Контекст сборки — папка frontend
+      dockerfile: Dockerfile # Использует frontend/Dockerfile
+    container_name: static_frontend
     ports:
-      - "80:80"
-    command: python -m http.server 80
-  # 4. СЕРВИС ТЕСТИРОВАНИЯ (tests)
+      - "80:80" # Проброс порта для доступа к веб-интерфейсу
+
+  # 4. СЕРВИС ТЕСТИРОВАНИЯ
   tests:
-    build: . # Использует тот же Dockerfile, что и бэкенд
+    build:
+      context: .
+      dockerfile: Dockerfile # Использует Dockerfile в корне (для установки зависимостей тестов)
     container_name: pytest_runner
     env_file:
-      - .env # Загружаем те же переменные (DATABASE_URL, SECRET_KEY)
+      - .env
     depends_on:
-      - db # Тесты должны запускаться только после готовности БД
+      db:
+        condition: service_healthy # Ждет готовности БД
     volumes:
       - .:/app
-    # Переопределяем команду, чтобы она не запускала uvicorn,
-    # а просто ждала внешнюю команду (через docker exec)
-    command: pytest tests/
+    # Команда для запуска тестов (5 секунд ожидания на всякий случай)
+    command: sh -c "sleep 5 && pytest tests/"
 
-# ТОМЫ (Volumes): Для постоянного хранения данных
 volumes:
   postgres_data:

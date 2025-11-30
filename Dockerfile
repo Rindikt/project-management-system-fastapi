@@ -1,11 +1,22 @@
-FROM python:3.11-slim
+FROM python:3.11-slim-buster
+
+
 WORKDIR /app
 
-COPY requirements.txt .
 
+RUN apt-get update && apt-get install -y \
+    gcc \
+    postgresql-client \
+    libpq-dev \
+    --no-install-recommends && \
+    rm -rf /var/lib/apt/lists/*
+
+
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY . .
+COPY ./app /app/app
+COPY ./alembic.ini /app/alembic.ini
 
 EXPOSE 8000
 

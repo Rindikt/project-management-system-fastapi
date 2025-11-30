@@ -1,16 +1,17 @@
-name: Continuous Integration (CI)
+# .github/workflows/ci.yml
+
+name: Continuous Integration and Deployment (CI/CD)
 
 on:
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
-  workflow_dispatch: # Позволяет запустить Workflow вручную с вкладки Actions
+  workflow_dispatch: # Ручной запуск
 
 jobs:
   test:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -26,16 +27,53 @@ jobs:
       - name: Create Backend .env file
         run: |
           echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> .env
-          # ВАЖНО: Используем 'db' как хост для контейнеров Docker!
           echo "DATABASE_URL=postgresql+asyncpg://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@db:5432/${{ secrets.POSTGRES_DB }}" >> .env
 
-      # 3. Запускаем Docker Compose.
-      # Поднимаем db и собираем образы для всех сервисов.
+      # 3. Запускаем Docker Compose для сборки и запуска тестов
       - name: Start services and Build Images
-        # ✅ ИСПРАВЛЕНИЕ: Используем 'docker compose' вместо 'docker-compose'
         run: docker compose up -d --build db backend tests
 
-      # 4. Запуск тестов в контейнере и ожидание завершения.
+      # 4. Запуск тестов в контейнере
       - name: Run Tests
-        # ✅ ИСПРАВЛЕНИЕ: Используем 'docker compose' вместо 'docker-compose'
         run: docker compose run --rm tests
+  
+  build_push: # НОВЫЙ JOB: Сборка и публикация образов
+    needs: test # Запускается только после успешного прохождения тестов
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      # 1. Вход в Docker Hub
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          
+      # 2. Настройка Buildx (для кэширования и лучшей сборки)
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # 3. Сборка и публикация образа Backend
+      - name: Build and Push Backend Image
+        uses: docker/build-push-action@v5
+        with:
+          context: . 
+          file: ./Dockerfile # Ваш основной Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/project-backend:latest 
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # 4. Сборка и публикация образа Frontend
+      - name: Build and Push Frontend Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend # Контекст - папка frontend
+          file: ./frontend/Dockerfile # Файл Dockerfile в папке frontend
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/project-frontend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
