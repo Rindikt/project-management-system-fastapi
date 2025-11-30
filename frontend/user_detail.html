@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="user-page-title">Профиль...</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Инициализация Tailwind для корректной работы
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Стиль для центрирования модального окна */
+        .modal-overlay {
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen p-4 sm:p-8 font-sans">
+    <div id="status-message" class="mt-2 p-2 rounded-lg text-sm transition-all duration-300 min-h-6"></div>
+
+    <div class="max-w-4xl mx-auto bg-white p-6 rounded-xl shadow-2xl">
+
+        <div class="flex items-center space-x-4 mb-6 border-b pb-4">
+            <a href="#" id="back-link" class="text-indigo-600 hover:text-indigo-800 transition-colors" title="Назад">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6 inline-block align-middle">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                </svg>
+                <span class="align-middle hidden sm:inline">Назад</span>
+            </a>
+            <h1 id="user-main-title" class="text-3xl font-bold text-gray-800 truncate">Профиль</h1>
+            <button id="logout-button" class="ml-auto text-red-500 hover:text-red-700 transition-colors text-sm font-medium">Выход</button>
+        </div>
+
+        <div id="user-detail-content">
+            <div id="user-view-card" class="bg-blue-50 p-6 rounded-xl shadow-inner border border-blue-200">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-semibold text-blue-700">Обзор Профиля</h2>
+                    <button id="edit-user-btn" class="text-sm font-medium text-blue-500 hover:text-blue-700">
+                        Редактировать
+                    </button>
+                </div>
+
+                <div class="space-y-3 text-gray-700">
+                    <p><strong>Email:</strong> <span id="user-email-view" class="font-bold"></span></p>
+                    <p><strong>Имя:</strong> <span id="user-first-name-view"></span></p>
+                    <p><strong>Фамилия:</strong> <span id="user-last-name-view"></span></p>
+                    <p><strong>Роль:</strong> <span id="user-role-view"></span></p>
+                    <p><strong>Должность:</strong> <span id="user-position-view"></span></p>
+                    <p><strong>Активен:</strong> <span id="user-is-active-view"></span></p>
+                    <p><strong>ID:</strong> <span id="user-id-view" class="font-mono text-xs bg-gray-100 p-1 rounded"></span></p>
+                </div>
+            </div>
+
+            <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-white p-4 rounded-xl shadow">
+                    <h3 class="text-lg font-semibold text-gray-700 mb-3 border-b pb-2">Проекты (Владелец)</h3>
+                    <ul id="owned-projects-list" class="space-y-2">
+                        </ul>
+                </div>
+                <div class="bg-white p-4 rounded-xl shadow">
+                    <h3 class="text-lg font-semibold text-gray-700 mb-3 border-b pb-2">Назначенные Задачи (<span id="tasks-count-span">0</span>)</h3>
+                    <ul id="assigned-tasks-list" class="space-y-2">
+                        </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="edit-user-modal" class="fixed inset-0 modal-overlay overflow-y-auto h-full w-full hidden z-50 flex items-center justify-center">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 relative transform transition-all duration-300 scale-100">
+            <button id="close-modal-btn" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+
+            <form id="edit-user-form" class="space-y-4">
+                <div id="edit-user-modal-content">
+                    </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="confirmation-modal" class="fixed inset-0 modal-overlay overflow-y-auto h-full w-full hidden z-50 flex items-center justify-center">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6 relative">
+            <h3 class="text-xl font-bold mb-4 text-gray-800" id="confirm-title">Подтвердите действие</h3>
+            <p id="confirm-message" class="mb-6 text-gray-700">Текст сообщения.</p>
+            <div class="flex justify-end space-x-3">
+                <button id="confirm-ok-btn" class="py-2 px-4 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors">OK</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="js/rendering.js"></script>
+    <script src="js/api_handlers.js"></script>
+    <script src="js/user_detail.js"></script>
+</body>
+</html>

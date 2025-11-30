@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Управление Проектами</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Стиль для центрирования модального окна */
+        .modal-overlay {
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-100 min-h-screen p-4 sm:p-8 font-sans">
+
+    <!-- Секция для сообщений о статусе -->
+    <div id="status-message" class="mt-2 p-2 rounded-lg text-sm transition-all duration-300 min-h-6"></div>
+
+    <!-- Общий контейнер приложения -->
+    <div class="max-w-4xl mx-auto bg-white p-6 rounded-xl shadow-2xl">
+        <h1 class="text-3xl font-bold text-gray-800 mb-6 border-b pb-3">Система Управления Проектами</h1>
+
+        <!-- Секция Аутентификации (видна, если нет токена) -->
+        <div id="auth-section" class="space-y-6">
+            <div class="flex border-b mb-4">
+                <button id="tab-login" class="px-4 py-2 text-sm font-medium border-b-2 border-indigo-500 text-indigo-600 focus:outline-none">Вход</button>
+                <button id="tab-register" class="px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:border-gray-300 focus:outline-none">Регистрация</button>
+            </div>
+
+            <div id="login-tab">
+                <h2 class="text-xl font-semibold text-gray-700 mb-4">Вход</h2>
+                <form id="login-form" class="space-y-4">
+                    <input type="email" id="login-email" placeholder="Email" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                    <input type="password" id="login-password" placeholder="Пароль" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                    <button type="submit" class="w-full py-3 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition-colors shadow-md">Войти</button>
+                </form>
+            </div>
+
+            <div id="register-tab" class="hidden">
+                <h2 class="text-xl font-semibold text-gray-700 mb-4">Регистрация</h2>
+                <form id="register-form" class="space-y-4">
+                    <input type="text" id="reg-first-name" placeholder="Имя" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                    <input type="text" id="reg-last-name" placeholder="Фамилия" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                    <input type="text" id="reg-position" placeholder="Должность (необязательно)" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                    <input type="email" id="reg-email" placeholder="Email" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                    <input type="password" id="reg-password" placeholder="Пароль (мин. 8 символов)" required minlength="8" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                    <button type="submit" class="w-full py-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition-colors shadow-md">Зарегистрироваться</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Основное Приложение (видна, если есть токен) -->
+ <div id="app-section" class="hidden">
+
+    <div id="user-navigation" class="mt-2 flex flex-col space-y-1">
+        <a id="link-my-profile" href="#" class="text-sm font-semibold text-indigo-600 hover:text-indigo-800 transition-colors">
+            ➡️ Мой Профиль
+        </a>
+
+        <a id="link-all-users" href="users.html" class="text-sm text-gray-700 hover:text-gray-900 transition-colors">
+            👥 Список Пользователей
+        </a>
+    </div>
+
+    <hr class="my-4">
+
+    <div class="flex justify-between items-center mb-6 border-b pb-4">
+        <h2 class="text-2xl font-semibold text-gray-700">Ваши Проекты</h2>
+
+        <div class="flex items-center space-x-4">
+            <button id="create-project-btn" class="flex items-center space-x-2 py-2 px-4 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors shadow-md">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+                <span>Новый Проект</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="mb-4 text-xs text-right">
+        <p class="hidden">Текущий токен: <span id="current-token" class="font-mono bg-gray-100 p-1 rounded"></span></p>
+        <button id="logout-button" class="mt-2 text-red-500 hover:text-red-700 transition-colors font-medium">Выход</button>
+    </div>
+
+    <div id="projects-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        </div>
+</div>
+
+    <!-- Модальное окно для создания проекта -->
+    <div id="project-modal" class="fixed inset-0 z-50 hidden items-center justify-center modal-overlay transition-opacity duration-300">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 relative transform transition-all duration-300 scale-100">
+            <h3 class="text-xl font-bold mb-4 text-gray-800">Создать Новый Проект</h3>
+            <button id="close-modal-btn" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+
+            <form id="create-project-form" class="space-y-4">
+                <input type="text" id="project-name" name="title" placeholder="Название проекта" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                <textarea id="project-description" name="description" placeholder="Описание проекта" rows="4" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+                <label for="project-due-date" class="text-sm text-gray-600 block">Дата дедлайна (Необязательно)</label>
+                <input type="date" id="project-due-date" name="dub_date" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                <button type="submit" class="w-full py-3 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition-colors shadow-md">Создать</button>
+            </form>
+        </div>
+    </div>
+    </div>
+
+<script src="js/index.js"></script>
+</body>
+</html>

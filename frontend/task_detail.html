@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="task-page-title">Загрузка задачи...</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    </head>
+<body class="bg-gray-100 min-h-screen p-4 sm:p-8 font-sans">
+    <div id="status-message" class="mt-2 p-2 rounded-lg text-sm transition-all duration-300 min-h-6"></div>
+
+    <div class="max-w-4xl mx-auto bg-white p-6 rounded-xl shadow-2xl">
+        <div class="flex items-center space-x-4 mb-6 border-b pb-4">
+            <button id="back-to-project-btn" class="text-indigo-600 hover:text-indigo-800 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6 inline-block align-middle">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                </svg>
+                <span class="align-middle hidden sm:inline">К проекту</span>
+            </button>
+            <h1 id="task-main-title" class="text-3xl font-bold text-gray-800 truncate">Загрузка...</h1>
+        </div>
+
+        <div id="task-detail-content">
+            <div id="task-view-card" class="bg-blue-50 p-6 rounded-xl shadow-inner border border-blue-200">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-semibold text-blue-700">Обзор Задачи</h2>
+                    <button id="edit-task-btn" class="text-sm font-medium text-blue-500 hover:text-blue-700">
+                        Редактировать
+                    </button>
+                </div>
+
+                <div class="space-y-3 text-gray-700">
+                    <p><strong>Статус:</strong> <span id="task-status-view" class="font-bold"></span></p>
+                    <p><strong>Приоритет:</strong> <span id="task-priority-view"></span></p>
+                    <p><strong>Описание:</strong> <span id="task-description-view" class="block mt-1 p-2 bg-white rounded-lg border"></span></p>
+                    <p><strong>Исполнитель:</strong> <span id="task-assigned-to-view"></span></p>
+                    <p><strong>Дедлайн:</strong> <span id="task-due-date-view"></span></p>
+                    <p><strong>Создана:</strong> <span id="task-created-at-view"></span></p>
+                    <p><strong>Автор:</strong> <span id="task-author-view"></span></p>
+                    <p><strong>ID:</strong> <span id="task-id-view" class="font-mono text-xs bg-gray-100 p-1 rounded"></span></p>
+                </div>
+
+                <button id="delete-task-btn" class="mt-4 text-red-500 hover:text-red-700 transition-colors text-sm">
+                     Удалить Задачу
+                </button>
+            </div>
+
+            <div id="task-edit-form-card" class="bg-yellow-50 p-6 rounded-xl shadow-inner border border-yellow-200 hidden">
+                <h2 class="text-2xl font-semibold text-yellow-700 mb-4">Редактирование Задачи</h2>
+                <form id="edit-task-form" class="space-y-4">
+                    <input type="text" id="edit-task-title" placeholder="Название задачи" required class="w-full p-3 border border-gray-300 rounded-lg">
+                    <textarea id="edit-task-description" placeholder="Описание задачи" rows="4" required class="w-full p-3 border border-gray-300 rounded-lg"></textarea>
+
+                    <select id="edit-task-priority" class="w-full p-3 border border-gray-300 rounded-lg">
+                        <option value="low">Низкий</option>
+                        <option value="medium">Средний</option>
+                        <option value="high">Высокий</option>
+                    </select>
+
+                    <select id="edit-task-status" class="w-full p-3 border border-gray-300 rounded-lg">
+                        <option value="todo">К выполнению</option>
+                        <option value="in_progress">В работе</option>
+                        <option value="done">Выполнена</option>
+                    </select>
+
+                    <label for="edit-task-due-date" class="text-sm text-gray-600 block">Дата дедлайна (Необязательно)</label>
+                    <input type="date" id="edit-task-due-date" class="w-full p-3 border border-gray-300 rounded-lg">
+
+                    <div class="flex justify-end space-x-3">
+                        <button type="button" id="cancel-edit-task-btn" class="py-2 px-4 text-gray-600 rounded-lg hover:bg-gray-100">Отмена</button>
+                        <button type="submit" class="py-2 px-4 bg-yellow-600 text-white font-bold rounded-lg hover:bg-yellow-700">Сохранить</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/rendering.js"></script>
+    <script src="js/api_handlers.js"></script>
+    <script src="js/task_detail.js"></script>
+</body>
+</html>
